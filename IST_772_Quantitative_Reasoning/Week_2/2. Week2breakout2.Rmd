@@ -1,0 +1,96 @@
+---
+title: "IST 772 Week 2 Breakout 3"
+output: html_notebook
+---
+
+# Week 2 - Practice with Conditional Probabilities 
+
+Instructions: 
+
+The table below shows accident reports from three different factories over the past month. Four types of accidents are represented. Each cell contains a count of the number of accidents of the given type at the particular factory:
+
+Accidents	| Factory 1	| Factory 2 |	Factory 3 |Marginal
+----------|-----------|-----------|---------- |
+Vehicle   |	    0     |	     6    |   	4     | 10
+Spill	    |     6     |   	 0    |	    6	    |  12
+Equipment	|     6     |      4    |   	5	    |  15 
+Injury    |	    4     |	     9    |    	0	    | 13
+Marginal    14              19          15    | 50
+				
+1. Manually add marginal totals to the table above for cross checking with your R results.
+
+2. Recreate the matrix in R using the following code:
+
+```{r}
+accMatrix <- matrix(data=c(0,6,4, 6,0,6, 6,4,5, 4,9,0),
+                    nrow=4,byrow=T, 
+                    dimnames=list(c("Vehicle","Spill","Equipment","Injury"),
+                                  c("Factory 1", "Factory 2", "Factory 3")))
+accMatrix
+```
+
+3. Compute a copy of accMatrix that contains proportions instead of counts. One helpful function that can be called on the whole matrix is sum( ).
+```{r}
+accMatrix_prob <- accMatrix/sum(accMatrix)
+accMatrix_prob
+```
+
+
+4. Calculate marginal totals for accMatrix. Two helpful functions that can be called are rowSums( ) and colSums( ). Another helpful function is addmargins( ). 
+```{r}
+row <- rowSums(accMatrix)
+columns <- colSums(accMatrix)
+accMatrix <- addmargins(accMatrix)
+accMatrix
+```
+
+
+5. OSHA is auditing the factory that has the worst accident record. Which factory is that? (A helpful function is which.max.) For that factory, list the raw proportions of each type of accident on the console, using the [ ] subsetting technique. For example, you could show the first column of accMatrix with this command: accMatrix[ ,1]
+```{r}
+which.max(columns)
+```
+
+
+6. Putting your focus solely on accidents at that factory, what's the probability of vehicle accidents at that factory? Write a line of R code that displays the result and include a comment describing what you see.
+```{r}
+row[1]/sum(columns)
+```
+
+
+7. The company that insures these factories wants to understand the most prevalent type of accident across all factories. Add a comment in your code indicating which type of accident that is. For that type of accident, list the raw proportions for each factory on the console, using the [ ] subsetting technique.
+```{r}
+which.max(row) #Equipment with 15 accidents
+accMatrix[3,]
+
+```
+
+
+8. Putting your focus solely on that kind of accident, what's the probability of that kind of accident at each factory? Write a line of R code that displays the result and include a comment describing what you see.
+```{r}
+accMatrix[3,]/sum(row[3])
+```
+
+9. Post your code and comments to the code share window: https://codeshare.io/aJDyRX
+```{r}
+
+```
+
+Alternative question:
+
+To control the spread of the disease, testing for COVID has become common. However, the tests are not perfect. As a result, whenever a test is administered, there are four possible outcomes: the person either has COVID or not and the test result is positive or not:
+
+               |    Test result      |
+True condition | Positive | Negative | 
+---------------+----------+----------|
+   Disease     |   True   |   False  | Sensitivity
+               | Positive | Negative | 
+---------------+----------+----------|
+  No disease   |  False   |   True   | Specificity
+               | Positive | Negative |
+---------------+----------+----------|
+               
+Tests are rated for their performance with two numbers: sensitivity, how well the test detects the disease (i.e., the % of true positives when the person has the disease, i.e., the top row) and specificity, the ability to determine someone doesn't have the disease (i.e., the bottom row). Prevalance is the proportion of people who actually have the disease in the population. Note that a test can be high in both sensitivity and specificity and still have a large number of false positives or negatives depending on the prevalance. 
+
+You can find a list of approved COVID tests with sensitivity and specificity here: https://www.centerforhealthsecurity.org/resources/COVID-19/serology/Serology-based-tests-for-COVID-19.html. Note that the sensitivity may change over time, e.g., many tests are not sensitive to the initial days of an infection. You can find data about COVID cases per thousand here: https://datausa.io/coronavirus (among other sites). Pick a test and state and fill out the table above assuming you did 1000 tests total of the population choosen at random (you can use the calculator here: https://www.bmj.com/content/369/bmj.m1808) If a test comes back positive, what are the odds that the person actually has COVID? If a test comes back negative? 
+
+

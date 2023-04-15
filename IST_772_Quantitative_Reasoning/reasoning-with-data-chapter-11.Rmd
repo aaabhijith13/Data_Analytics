@@ -1,0 +1,228 @@
+---
+title: An R Markdown document converted from "reasoning-with-data-chapter-11.ipynb"
+output: html_document
+---
+
+```{r}
+boxplot(weight ~ Time, data=ChickWeight)
+```
+
+```{r}
+# t-test
+ch16index <- ChickWeight$Time == 16 # Chicks measured at time 16
+ch18index <- ChickWeight$Time == 18 # Chicks measured at time 18
+bothChicks <- ChickWeight[ch16index | ch18index,] # Both sets together
+
+time16weight <- bothChicks[bothChicks$Time == 16,"weight"] # Grab the weights for t=16
+time18weight <- bothChicks[bothChicks$Time == 18,"weight"] # Grab the weights for t=18
+cor(time16weight,time18weight) # Are they correlated?
+```
+
+```{r}
+mean(time16weight)
+mean(time18weight)
+t.test(time18weight,time16weight,paired = FALSE) # Independent groups t-test
+```
+
+```{r}
+install.packages("BEST") # Note that in Kaggle notebooks, Internet must be enabled in settings to install packages
+library(BEST) # It may not be possible to run JAGS in a Kaggle notebook
+```
+
+```{r}
+BESTmcmc(time18weight,time16weight)# Run the Bayesian equivalent 
+```
+
+```{r}
+t.test(time18weight,time16weight,paired = TRUE) # Dependent groups t-test
+```
+
+```{r}
+weightDiffs <- time18weight - time16weight # Make difference scores
+t.test(weightDiffs) # Run a one sample t-test on difference scores
+```
+
+```{r}
+BESTmcmc(weightDiffs) # Run the Bayesian equivalent on difference scores
+```
+
+```{r}
+# ANOVA within
+chwBal <- ChickWeight # Copy the dataset
+chwBal$TimeFact <- as.factor(chwBal$Time) # Convert Time to a factor
+list <- rowSums(table(chwBal$Chick,chwBal$TimeFact))==12 # Make a list of rows
+list <- list[list==TRUE] # Keep only those with 12 observations
+list <- as.numeric(names(list)) # Extract the row indices
+chwBal <- chwBal[chwBal$Chick %in% list,] # Match against the data
+dim(table(ChickWeight$Chick,ChickWeight$Time))
+table(chwBal$Chick,chwBal$TimeFact) 
+dim(table(chwBal$Chick,chwBal$TimeFact))
+# Check results
+```
+
+```{r}
+summary(aov(weight ~ TimeFact + Error(Chick), data=chwBal))
+```
+
+```{r}
+# Code for the Sidebar
+# install.packages("ez")
+library("ez")
+
+ezANOVA(data=chwBal, dv=.(weight), within=.(TimeFact), wid=.(Chick), detailed=TRUE)
+```
+
+```{r}
+set.seed(1234) # Control random numbers
+tslen <- 180 # About half a year of daily points
+ex1 <- rnorm(n=tslen,mean=0,sd=10)        # Make a random variable
+tex1 <- ex1 + seq(from=1, to=tslen, by=1) # Add the fake upward trend
+```
+
+```{r}
+plot.ts(tex1) # Plot the time series with a connected line 
+```
+
+```{r}
+ex2 <- rnorm(n=tslen,mean=0,sd=10)        # Make another random variable
+tex2 <- ex2 + seq(from=1, to=tslen, by=1) # Add the fake upward trend
+cor(ex1, ex2)                           # Correlation between the two random variables 
+cor(tex1, tex2)                         # Correlation between the two time series 
+```
+
+```{r}
+plot(tex1, tex2)
+```
+
+```{r}
+ex3 <- rnorm(n=tslen,mean=0,sd=10)  
+tex3 <- ex3 + seq(from=1, to=tslen, by=1) # Add the fake upward trend
+tex3 <- tex3 + sin(seq(from=0,to=36,length.out=tslen))*20
+
+plot.ts(tex3)
+```
+
+```{r}
+decOut <- decompose(ts(tex3,frequency=30))
+
+plot(decOut)
+```
+
+```{r}
+mean(decOut$trend,na.rm=T)
+mean(decOut$seasonal)
+mean(decOut$random,na.rm=T)
+cor(ex3, decOut$random, use="complete.obs")
+```
+
+```{r}
+set.seed(1234)
+tslen <- 180
+ex1 <- rnorm(n=tslen,mean=0,sd=10)        # Make a random variable
+ 
+acf(ex1, main=NULL)
+```
+
+```{r}
+tex1 <- ex1 + seq(from=1, to=tslen, by=1) # Add the fake upward trend
+ 
+acf(tex1, main=NULL)
+```
+
+```{r}
+ex3 <- rnorm(n=tslen,mean=0,sd=10)  
+tex3 <- ex3 + seq(from=1, to=tslen, by=1) # Add the fake upward trend
+tex3 <- tex3 + sin(seq(from=0,to=36,length.out=tslen))*20
+acf(tex3)
+```
+
+```{r}
+acf(decOut$trend,na.action=na.pass)
+```
+
+```{r}
+acf(decOut$seasonal, main=NULL)
+```
+
+```{r}
+acf(decOut$random,na.action=na.pass, main=NULL)
+```
+
+```{r}
+# install.packages("tseries")
+library("tseries")
+decComplete <- decOut$random[complete.cases(decOut$random)]
+adf.test(decComplete) # Shows significant, so it is stationary
+```
+
+```{r}
+plot(EuStockMarkets, main=NULL)
+```
+
+```{r}
+plot(diff(EuStockMarkets), main=NULL)
+```
+
+```{r}
+#install.packages("changepoint")
+library(changepoint)
+```
+
+```{r}
+# Use changepoint analysis to locate the positon of a mean change
+DAX <- EuStockMarkets[,1]
+DAXcp <- cpt.mean(DAX)
+DAXcp
+
+plot(DAXcp,cpt.col="grey",cpt.width=5)
+```
+
+```{r}
+cpt.var(diff(EuStockMarkets[,"DAX"])) # Examine the change in variance
+```
+
+```{r}
+# Change to a simple output data structure to retrieve the confidence value
+DAXcp <- cpt.mean(DAX,class=FALSE) 
+DAXcp["conf.value"]
+```
+
+```{r}
+# Now difference the DAX series and look for a change in variance
+dEUstocks <- diff(EuStockMarkets)
+plot(dEUstocks)
+dDAX <- dEUstocks[,1]
+dDAXcp <- cpt.var(dDAX)
+plot(dDAXcp,cpt.col="grey",cpt.width=5)
+```
+
+```{r}
+dDAXcp
+```
+
+```{r}
+#install.packages("bcp")
+library(bcp)
+
+bcpDAX <- bcp(as.vector(DAX))
+```
+
+```{r}
+plot(bcpDAX,outer.margins = list(left = unit(4,"lines"), bottom = unit(3, "lines"), right = unit(3, "lines"), top = unit(2,"lines")), main=NULL) 
+```
+
+```{r}
+plot(bcpDAX$posterior.prob>.95)
+```
+
+```{r}
+# Sidebar 11.2
+# Run a model with p=1, d=0, and q=1; hold out the last ten values
+
+tsFit <- arima(LakeHuron[1:88], order=c(1,0,1))	# Fit the model
+predict(tsFit,n.ahead=10) # Show the next ten predicted values
+LakeHuron[89:98]  # Compare with the actual values
+
+# End of Sidebar 11.2
+```
+

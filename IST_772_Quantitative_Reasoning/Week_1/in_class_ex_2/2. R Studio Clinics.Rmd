@@ -1,0 +1,63 @@
+---
+title: "IST 772 Week 1 R-Studio Clinic"
+author: "Your name here"
+output: pdf_document
+---
+
+# Introduction to R Markdown
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. See the [R Markdown Cheat Sheet](https://rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf) for an overview of what you can do in markdown. 
+
+Try executing this chunk by clicking the *Run* button at the top right of the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter* or clicking the *Run* button on the toolbar at the top of the document. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert* button on the toolbar or by pressing *Cmd+Option+I*.
+
+```{r}
+describe(cars)
+```
+
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it. Click the *Preview* button or press *Cmd+Shift+K* to see a rendered HTML copy of the contents of the editor. Note that *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed. 
+
+To share your results with the world, *Knit* the document to create a PDF (or Word or html) document. To ensure the notebook is reproduceable, *Knit* runs all the R code chunks in a fresh R session, so the document needs to be self-contained, loading all needed libraries and data. 
+
+# R-Studio Clinic Part 1
+
+Navigate to the appropriate folder using the Files tab of the Content pane; click to load tinyData.Rdata. Or use the open dialog in the Environment tab of the Environment pane. The menu commmand runs a line of R code that you should copy to a chunk to run when you knit the document. 
+
+```{r}
+td <- c(0,0,0,2,3,4,5) # If all else fails
+
+```
+
+Compute the mean and standard deviation of our tiny data set. 
+```{r}
+mean(td)
+sqrt( sum((td - mean(td))^2) / length(td) )
+```
+
+Share the code you wrote at https://codeshare.io/aJDyRX
+
+# R-Studio Clinic Part 2
+
+Calculate mean, var, sd on the co2 dataset
+```{r}
+data("co2")
+new_set <- co2
+mean(new_set)
+sum((new_set - mean(new_set)) ^2)/ length(new_set)
+```
+
+Create a histogram and describe the distribution 
+```{r}
+hist(new_set)
+summary(new_set)
+```
+#ctrl+alt+i (Adding block code)
+
+Share the code you wrote at https://codeshare.io/aJDyRX

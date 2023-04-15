@@ -1,0 +1,74 @@
+---
+title: "Week 4 – Battery Data Confidence Interval Exercise"
+---
+
+Instructions: This exercise provides an opportunity to work with real data and develop a confidence interval. The data set represents battery life in minutes for mobile phones for two different types of batteries: NiCad and Li-Ion. The research question is whether the Li-Ion batteries (labelled as type 2 in the data set) offer a better battery life than the NiCads (labelled as type 1 in the data set).
+
+1. Download the provided CSV file (batterydata.r.csv) and read in the data using the Import Data dialog in R-Studio. Once imported, the data should show in a View() window in the upper left pane of R-Studio. Scroll through the data and name the variables here:
+```{r}
+battery<- bBatterydata
+#variable names: Observations, battery and time. 
+```
+
+2. Whenever you read in a new dataset, it's a good idea to explore it a bit to be sure you understand what's going on. summary() will give some basic information The describe() function in the psych library prints a wider range of descriptive statistics. Try these on the data you just read. 
+```{r}
+library(psych)
+summary(battery)
+describe(battery)
+```
+
+It's also good practice to plot the data to observe the distributions. Create a histogram for the interesting variable.
+
+Finally, given that the data are for two types of batteries, it's worth comparing the distributions. You can create a boxplot comparing them as follows: 
+
+```{r}
+hist(battery$Time[battery$Battery == 1])
+hist(battery$Time[battery$Battery == 2])
+with(battery, boxplot(Time~Battery))
+```
+
+Or use one of my favourite plots, the violin plot, a sort of cross between a boxplot and a histogram. You can create it as follows:
+
+```{r}
+library(ggplot2)
+ggplot(data=battery, aes(x=as.factor(Battery), y=Time)) + geom_violin()
+```
+
+What do you notice about these two distributions? 
+
+3. Subset the data in order to place the NiCad observations in one vector and the Li-Ion observations in the other. Here are two lines of code that will do the job:
+
+```{r}
+nicad <- battery$Time[battery$Battery==1] 
+liion <- battery$Time[battery$Battery==2]
+describe(nicad, liion)
+```
+
+4. Calculate the mean and standard deviation of both nicad and liion. Which mean is higher?
+```{r}
+mean(nicad)
+mean(liion)
+sd(nicad)
+sd(liion)
+```
+
+
+5. Use the t.test() command to create a confidence interval for the mean difference between these two vectors of data. Report the numeric values of the upper and lower bounds of the confidence interval.
+```{r}
+mean(nicad - liion) #from the results lithium rode is bigger thant the nicad. 
+#litthium rods last longer, by 71 minutes (-70.9).
+#95% interval indicates that, if the process was to repeat 100 times 95 of the test, would contain the mean difference. 
+#Confidence interval is 58 minutes to 83 minutes.
+#95 % confidence interval, the confidence interval would contain the true population 95 out of 100 times. 
+#because the data is grouped up the sampling erorr for Liion is small and the standard error will also be samll, unlike nicad. 
+#the point estimate can be caluclated two ways: Find the sum of confidence interval/2 or the mean difference of of the two variables
+#
+t.test(nicad, liion)
+```
+
+
+6. In a brief sentence or two, interpret the confidence interval. Make sure to explain what a confidence interval and what, if anything, you know about the population mean difference between the two types of battery.
+
+7. Imagine you are now reporting these results back to the engineers who are working on these batteries. Engineers generally have no difficulty with quantitative concepts, but they are not statisticians, so they need thoughtful guidance on making sense of the results. Explain in a comment what caveats, cautions, or warnings accompany the confidence interval you just documented. (Here's a summary of the APA recommended format for reporting results of statistical tests http://www2.psych.utoronto.ca/users/reingold/courses/resources/handouts_apa/Stats1.pdf.)
+
+7. Share your code and comments at https://codeshare.io/aJDyRX

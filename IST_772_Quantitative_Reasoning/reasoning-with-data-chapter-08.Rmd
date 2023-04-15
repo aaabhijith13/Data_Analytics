@@ -1,0 +1,149 @@
+---
+title: An R Markdown document converted from "Reasoning with Data Chapter 8.ipynb"
+output: html_document
+---
+
+```{r}
+set.seed(321)
+hardwork <- rnorm(120)
+basicsmarts <- rnorm(120)
+curiosity <- rnorm(120)
+
+randomnoise <- rnorm(120)
+gpa <- hardwork/2 + basicsmarts/2 + curiosity/2 + randomnoise/2
+sd(gpa)
+```
+
+```{r}
+plot(hardwork, gpa, main=NULL)
+```
+
+```{r}
+plot(hardwork,gpa, main=NULL)
+abline(a=0, b=0.56)
+arrows(min(hardwork),gpa[which.min(hardwork)],min(hardwork),min(hardwork)*0.56)
+```
+
+```{r}
+hist(gpa - (hardwork * 0.56), main=NULL)
+```
+
+```{r}
+sum(gpa - (hardwork * 0.56))
+```
+
+```{r}
+calcSQERR <- function(dv, iv, slope)
+{
+  (dv - (iv*slope))^2
+}
+```
+
+```{r}
+head(calcSQERR(gpa,hardwork,0.56))
+sum(calcSQERR(gpa,hardwork,0.56))
+```
+
+```{r}
+hist(calcSQERR(gpa,hardwork,0.56), main=NULL)
+```
+
+```{r}
+sumSQERR <- function(slope)
+{
+  sum(calcSQERR(gpa, hardwork, slope))
+}
+```
+
+```{r}
+sumSQERR(0.56)
+```
+
+```{r}
+trySlopes <- seq(from=0, to=1, length.out=40)
+sqerrList <- sapply(trySlopes, sumSQERR)
+plot(trySlopes, sqerrList, main=NULL)
+```
+
+```{r}
+educdata <- data.frame(gpa, hardwork, basicsmarts, curiosity)
+regOut <- lm(gpa ~ hardwork, data=educdata)
+summary(regOut)
+```
+
+```{r}
+regOut3 <- lm(gpa ~ hardwork + basicsmarts + curiosity, data=educdata)
+summary(regOut3)
+```
+
+```{r}
+plot(randomnoise,regOut3$residuals, main=NULL)
+```
+
+```{r}
+summary(residuals(regOut3))
+cor(educdata)
+```
+
+```{r}
+library(BayesFactor)
+regOutMCMC <- lmBF(gpa ~ hardwork + basicsmarts + curiosity, data=educdata, posterior=TRUE, iterations=10000)
+summary(regOutMCMC)
+```
+
+```{r}
+hist(regOutMCMC[,"hardwork"], main=NULL)
+abline(v=quantile(regOutMCMC[,"hardwork"],c(0.025)), col="black")
+abline(v=quantile(regOutMCMC[,"hardwork"],c(0.975)), col="black")
+```
+
+```{r}
+rsqList <- 1 - (regOutMCMC[,"sig2"] / var(gpa))
+mean(rsqList)  # Overall mean R-squared is 0.75
+```
+
+```{r}
+hist(rsqList, main=NULL)
+abline(v=quantile(rsqList,c(0.025)), col="black")
+abline(v=quantile(rsqList,c(0.975)), col="black")
+```
+
+```{r}
+regOutBF <- lmBF(gpa ~ hardwork + basicsmarts + curiosity, data=educdata)
+regOutBF
+```
+
+```{r}
+# Real example using state.x77 data
+stateData <- data.frame(state.x77)
+stateOut <- lm(Life.Exp ~ HS.Grad + Income + Illiteracy,data=stateData)
+summary(stateOut)
+```
+
+```{r}
+stateOutMCMC <- lmBF(Life.Exp ~ HS.Grad + Income + Illiteracy,data=stateData, posterior=TRUE, iterations=100000)
+summary(stateOutMCMC)
+rsqList <- 1 - (stateOutMCMC[,"sig2"] / var(stateData$Life.Exp))
+mean(rsqList)  # Overall mean R-squared
+quantile(rsqList,c(0.025))
+quantile(rsqList,c(0.975))
+```
+
+```{r}
+stateOutBF <- lmBF(Life.Exp ~ HS.Grad + Income + Illiteracy,data=stateData)
+stateOutBF
+```
+
+```{r}
+# Code for bonus homework item
+set.seed(1)
+betaVar <- scale(rbeta(50,shape1=1,shape2=10))
+normVar <- rnorm(50)
+poisVar <- scale(rpois(50,lambda=10))
+noiseVar <- scale(runif(50))
+depVar <- betaVar/2 + normVar/2 + poisVar/2 + noiseVar/2
+oddData <- data.frame(depVar,betaVar,normVar,poisVar)
+
+summary(lm(depVar ~ .,data=oddData))
+```
+

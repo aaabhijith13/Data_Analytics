@@ -1,0 +1,79 @@
+---
+title: "IST772 Problem Set 6"
+author: "Abhijith Anil Vamadev"
+output:
+  pdf_document: default
+---
+
+The homework for week 6 is based on exercises 1-7 on pages 117 and 118 but with changes as noted in this notebook (i.e., follow the problems as given in this document and not the textbook). 
+
+Attribution statement: (choose only one)
+1. I did this homework by myself, with help from the book and the professor
+2. I did this homework with help from the book and the professor and these Internet sources:
+3. I did this homework with help from <Name of another student> but did not cut and paste any code
+
+# Chapter 6, Exercise 1
+
+_The datasets package (installed in R by default) contains a dataset called warpbreaks (see "? warpbreaks" for documentation) that shows the number of warp thread breaks per loom for different tensions (again, we will not consider the type of wool). For each tension, n = 18 observations were conducted. In this experiment, what is the dependent variable (outcome) and what is the independent variable? What is the total number of observations? (1 pt)_
+```{r}
+warpbreaks
+#dependent variable is the number of breaks 
+#independet variable is the level of the tension
+#There is a total of 54 observations
+```
+
+
+# Chapter 6, Exercise 2
+
+_After running the aov() procedure on the warpbreaks data set, the “Mean Sq” for tension is 1017.1 and the “Mean Sq” for Residuals is 141.1 (1 pt). Which one of these is the between-groups variance and which one is the within‐groups variance? Explain your answers briefly in your own words. (1 pt)_
+```{r}
+* 
+```
+
+# Chapter 6, Exercise 3
+
+_Based on the information in question 2 and your response to that question, calculate an F‐ratio by hand or using a calculator. Given everything you have earned about F‐ratios, what do you think of this one? Hint: If you had all the information you needed for a Null Hypothesis Significance Test, would you reject the null? Why or why not? (1 pt)_
+
+# Chapter 6, Exercise 4
+
+_Continuing with the warpbreaks example, there are three groups where each one has n = 18 observations. Calculate the degrees of freedom between groups and the degrees of freedom within groups. Explain why the sum of these two values adds up to one less than the total number of observations in the data set. (1 pt)_
+
+# Chapter 6, Exercise 5
+
+_Use R or R‐Studio to run the aov() command on the warpbreaks data set. You will have to specify the model correctly using the “~” character to separate the dependent variable from the independent variable. Place the results of the aov() command into a new object called warpbreakResults. Run the summary() command on warpbreakResults and interpret the results briefly in your own words. As a matter of good practice, you should state the null hypothesis, the alternative hypothesis, and what the results of the null hypothesis significance test lead you to conclude. (1 pt) (Here's a summary of the APA recommended format for reporting statistical tests http://www2.psych.utoronto.ca/users/reingold/courses/resources/handouts_apa/Stats1.pdf.) _
+```{r}
+* talk about degrees of freedom. and all values in the table. 
+```
+
+# Chapter 6, Exercise 6
+
+_Load the BayesFactor package and run the anovaBF() command on the warpbreaks data set. You will have to specify the model correctly using the “~” character to separate the dependent variable from the independent variable. Produce posterior distributions with the posterior() command and display the resulting HDIs. (1 pt) Interpret the results briefly in your own words, including an interpretation of the BayesFactor produced by the grouping variable. (1 pt) As a matter of good practice, you should state the two hypotheses that are being compared. Using the rules of thumb offered by Kass and Raftery (1995), what is the strength of this result? (1 pt)_
+```{r}
+* alternate hypothesis is in faavor of ratio 21.51. If bayes factor is between 3 - 10, is in suppport of alternate. If it is greater than 10 it is very in support of alternate hypothesis. 
+* The question is if some of the group means are different and indeed, the HDIs for the three groups do not all overlap (e.g., L > 0 and H < 0), which is evidence that the groups do have different means
+```
+
+
+# Chapter 6, Exercise 7
+
+_In situations where the alternative hypothesis for an ANOVA is supported and there are more than two groups, it is possible to do post‐hoc testing to uncover which pairs of groups are substantially different from one another. Using the warpbreaks data, conduct a t‐test to compare groups "M" and "L" (preferably a Bayesian t‐test). Interpret the results of this t‐test. (1 pt) In addition to the Bayesian t-test, feel free to run Tukey’s HSD or another post-hoc procedure._
+```{r}
+l <- warpbreaks$breaks[warpbreaks$tension=="L"]
+m <- warpbreaks$breaks[warpbreaks$tension =='M']
+l
+m
+* if HDI contains 0, the mean difference is 0. 
+* The HDI contains 0, so the Bayes suggests that the difference might just be chance.
+* 
+```
+
+* the function computed a probability distribution for the mean differnce of low and medium tensions. The population mean differnce is -9.61. 
+```{r}
+library(BayesFactor)
+bayesOut <- anovaBF(breaks ~ tension, data=warpbreaks)
+summary(bayesOut)
+warpbreakResults <- aov(breaks ~ tension, data = warpbreaks)
+summary(warpbreakResults)
+
+```
+

@@ -1,0 +1,154 @@
+---
+title: An R Markdown document converted from "reasoning-with-data-chapter-10.ipynb"
+output: html_document
+---
+
+```{r}
+library(car)
+library(MCMCpack)
+# Create a sequence of 100 numbers, ranging from -6 to 6 to serve as the X variable
+logistX <- seq(from=-6, to=6, length.out=100)
+
+# Compute the logit function using exp(), the inverse of log()
+logistY <- exp(logistX)/(exp(logistX)+1)
+```
+
+```{r}
+plot(logistX,logistY)
+```
+
+```{r}
+# Create a random, standard-normal predictor variable
+set.seed(123)
+logistX <- rnorm(n=100,mean=0,sd=1)
+
+# Create an outcome variable as a logit function of the predictor
+logistY <- exp(logistX)/(exp(logistX)+1)
+
+# Make the dichotomous/binomial version of the outcome variable
+binomY <- round(logistY)
+
+# Add noise to the predictor so that it does not perfectly predict the outcome
+logistX <- logistX/1.41 + rnorm(n=100,mean=0,sd=1)/1.41
+
+plot(logistX, binomY)
+```
+
+```{r}
+binomY <- factor(round(logistY), labels=c('Truth','Lie'))
+logistDF <- data.frame(logistX, logistY, binomY) # Make data frame
+ 
+boxplot(formula=logistX ~ binomY, data=logistDF, ylab="GSR", main=NULL)
+```
+
+```{r}
+glmOut <- glm(binomY ~ logistX, data=logistDF, family=binomial())
+summary(glmOut)
+```
+
+```{r}
+mean(residuals(glmOut))
+hist(residuals(glmOut))
+```
+
+```{r}
+exp(coef(glmOut)) # Convert log odds to odds
+exp(confint(glmOut)) # Look at confidence intervals around log-odds
+```
+
+```{r}
+anova(glmOut, test="Chisq")  # Compare null model to one predictor model
+```
+
+```{r}
+par(mfrow=c(1,2))                                    # par() configures the plot area
+plot(binomY, predict(glmOut),ylim=c(-4,4)) # Compare with earlier plot
+plot(binomY, logistX,ylim=c(-4,4))
+par(mfrow=c(1,1))                                    # par() configures the plot area
+```
+
+```{r}
+# install.packages("car")
+library(car)
+data(Chile)
+```
+
+```{r}
+ChileY <- Chile[Chile$vote == "Y",] # Grab the Yes votes
+ChileN <- Chile[Chile$vote == "N",] # Grab the No votes
+ChileYN <- rbind(ChileY,ChileN) # Make a new dataset with those
+ChileYN <- ChileYN[complete.cases(ChileYN),] # Get rid of missing data
+ChileYN$vote <- factor(ChileYN$vote,levels=c("N","Y")) # Fix the factor
+# dim(ChileYN)
+# table(ChileYN$vote)
+```
+
+```{r}
+par(mfrow=c(1,2))      
+boxplot(age ~ vote, data=ChileYN, main=NULL)
+boxplot(income ~ vote, data=ChileYN)
+par(mfrow=c(1,1))                                    # par() configures the plot area
+```
+
+```{r}
+chOut <- glm(formula = vote ~ age + income, family = binomial(), data = ChileYN)
+summary(chOut)
+```
+
+```{r}
+summary(chOut)
+exp(coef(chOut)) # Convert log odds to odds
+exp(confint(chOut)) # Look at confidence intervals
+anova(chOut, test="Chisq")   # Compare null model to predictor models
+```
+
+```{r}
+# In Kaggle notebooks, make sure to enable the Internet in the settings area 
+library(BaylorEdPsych)
+library(remotes)
+```
+
+```{r}
+PseudoR2(chOut)
+```
+
+```{r}
+# hist(predict(chOut,type="response"))
+table(round(predict(chOut,type="response")),ChileYN$vote)
+```
+
+```{r}
+# Now do it the Bayesian way
+
+#install.packages("MCMCpack")    # Download MCMCpack package
+library(MCMCpack) # Load the package 
+```
+
+```{r}
+ChileYN$vote <- as.numeric(ChileYN$vote) - 1 # Adjust the outcome variable
+bayesLogitOut <- MCMClogit(formula = vote ~ age + income, data = ChileYN)
+summary(bayesLogitOut) # Summarize the results
+```
+
+```{r}
+plot(bayesLogitOut$coefficent)
+hist(bayesLogitOut[,"age"])
+hist(bayesLogitOut[,1])
+```
+
+```{r}
+exp(mean(bayesLogitOut[,"age"]))
+exp(quantile(bayesLogitOut[,"age"],c(0.025)))
+exp(quantile(bayesLogitOut[,"age"],c(0.975)))
+```
+
+```{r}
+ageLogOdds <- as.matrix(bayesLogitOut[,"age"])
+ageOdds <- apply(ageLogOdds,1,exp)
+
+hist(ageOdds, main=NULL)
+hist(bayesLogitOut[,1])
+abline(v=quantile(bayesLogitOut[,1],c(0.025)),col="black")	
+abline(v=quantile(bayesLogitOut[,1],c(0.975)),col="black")
+```
+

@@ -1,0 +1,136 @@
+---
+title: "IST772 Problem Set 9"
+author: "Abhijith Anil Vamadev"
+output:
+  pdf_document: default
+---
+
+The homework for week 10 is based on exercises 2-4, 6, 8 and 9 on pages 209-210 but with changes as noted in this notebook (i.e., follow the problems as given in this document and not the textbook). 
+
+Attribution statement: (choose only one)
+1. I did this homework by myself, with help from the book and the professor
+
+# Chapter 9, Exercise 2
+
+_Using the built in dataset CO2, use the interaction.plot() command to display a means plot of the “uptake” variable, using “Type” and “Treatment” as the factors. Interpret the results: Without knowing any of the statistics, would you guess that there is or is not an interaction between Type and Treatment? (1 pt)_
+```{r}
+library("HSAUR")
+data <- CO2 #variable
+interaction.plot(x.factor=CO2$Type,trace.factor=CO2$Treatment,response=CO2$uptake)
+#interaction plot
+```
+* Y axis represents the uptake of Co2. The x-axis has two types of origns of the plant, Quebec and Missiippi. And there are two lines representing the two treatmnet types, one representing nonchilled and other one being chilled. 
+* None of the intermediate points implied by the lines really exist.
+* The two lines are not entirely parallel to each other indicating there might be an 
+interaction between the two variables. 
+* That suggests the possibility that the effect of CO2 Type on uptake may be dependent upon
+whether the treatment type is chilled or non-chilled.
+
+# Chapter 9, Exercise 3
+
+_Use aov() to produce significance tests of the main effects of Type and Treatment and the interaction between Type and Treatment using uptake as the dependent variable. (1 pt) Make sure to state each null hypothesis and then use the correct language to describe the outcomes of the significance tests. Make sure to report “omnibus” statistics as well. (1 pt)_
+```{r}
+aovOut = aov(uptake ~ Type + Treatment + Type:Treatment, data=CO2) #aov
+summary(aovOut) #summary
+```
+* F(1, 80) = 3.552, for Type:treatment is not statistically significant at the conventional alpha threshold, as the p-value 0.06, we fail to reject the null hypothesis. There is no statistically significant interaction. 
+
+* F(1, 80) = 52.509, for the type variable,is statistically significant at the conventional alpha threshold, as p(2.38e-10) < 0.05. There is significant effect.  
+
+* F(1, 80) =  15.416, for the treatment variable,is statistically significant at the conventional alpha threshold, as p(0.00018) < 0.05. There is significant effect.   
+
+# Chapter 9, Exercise 4
+
+_Use anovaBF() to examine the main effects and interaction as described in Exercise 3. Interpret the results in your own words. Contrast the results from the traditional ANOVA analysis with the results of the Bayes Factor ANOVA. (1 pt) Use the output object from the anovaBF() procedure to create an odds ratio that compares the complete model (with the interaction) against a main effects‐only model. (1 pt) _
+
+_Important note: The anovaBF() function is picky about how the data sets it analyzes are stored. Use newCO2 <- data.frame(CO2) to convert the CO2 data set to a data frame. Then conduct your analysis on newCO2. _
+
+```{r}
+library(BayesFactor)
+newCO2 <- data.frame(CO2) #data farme
+aovOut3 = anovaBF(uptake ~ Type*Treatment, data=newCO2) #anova BF
+aovOut3 
+aovOut3[4]/aovOut3[3] # What’s the odds ratio of model 4 vs. model 3?
+```
+* These results confirm our findings from earlier. Type has a Bayes factor odds of 2366422 to 1 , which is heavily in favor of the alternative hypothesis, that there is an effect.
+
+* Treatment is has a Bayes factor odds of 11.62 to 1 and is strongly in favor of the alternative, hypothesis, that there is an effect.
+
+* The main effects only model has a Bayes factor of 238426524 to 1is also heavily in favor
+of the alternative hypothesis, that there is significant interaction. 
+
+* The full model containing the interaction term and the main effects, has an odds ratio of 295861285  to 1 which, is also extremely in favor of a model that combines main effects and
+interaction effects. 
+
+* The comparing of the interaction model versus the main effects only model, the 
+odds show 1.27 to 1 in favor of the model that includes the interaction term. This is a 
+very weak result, barely worth mentioning. 
+
+# Chapter 9, Exercise 6
+
+_This exercise uses the USJudgeRatings dataset, contains a set of 43 ratings of the competence of state judges in the U.S. Superior Court (from the 1970s). Using similar code as that which appeared in the regression interactions section of this chapter, plot regression lines showing PREP (on the X‐axis) and RTEN (on the Y‐axis). Plot two regression lines, one for the half of the data set where FAMI is below its median value and one where FAMI is at or above its median value. Without knowing any of the statistics, do you think it likely that there is an interaction between FAMI and PREP? Explain why or why not in your own words. (1 pt)_
+```{r}
+df <- USJudgeRatings #data farame
+plot(df$PREP,df$RTEN) #plot
+hiFAMI <- subset(df, FAMI > median(df$FAMI))#subsetting
+hiLmOut <- lm(PREP ~ RTEN,data=hiFAMI) #linear regreession model
+abline(hiLmOut,col="blue") #color and line
+
+lowFAMI <- subset(df, FAMI < median(df$FAMI)) #subsetting
+lowLmOut <- lm(PREP ~ RTEN,data=lowFAMI)#linear regression model
+abline(lowLmOut,col="red")#color and line
+
+```
+* X-axis represents PREP while Y-axis represents the RTEN, and the data points 
+are FAMI points that are higher and lower than the median. The two lines represent
+at the lines is the line of best fit for the low and high FAMI (less than and greater
+than the median of FAMI)
+* It is likely there is no interaction between PREP and RTEN, so there two linear regression models, are parallel.
+* That suggests the possibility that the effect of PREP on RTEN may not be dependent upon
+whether there is high Familiarity with law or low Familiarity with law.
+
+
+# Chapter 9, Exercise 8
+
+_Conduct a regression analysis of the linear and interactive effects of PREP and FAMI on RTEN using the lm() function. Be sure to centre the variables first. (1 pt) Interpret the results in your own words, making sure to report the outcomes of the significance tests. (1 pt)_
+```{r}
+reg <- lm(PREP~FAMI+RTEN, data = df) #linear regression
+summary(reg)#summary
+plot(reg, which = 1:3) #plots
+hist(reg$residuals) #residual histogram
+```
+* Looking at the graph and data, the residuals appear to be distributed without any
+skewness and looks to be normally distrusted. There is no Heteroscedasticity either,
+looking at the plots, as it isn't in a cone shape. 
+* The intercept has an estimate of 0.1011 with a t-value of 0.630 and an associated 
+p-value of 0.532 which is higher than the p-value, making it fail to reject the
+null hypothesis. 
+* The FAMI has an estimate of 0.842 with a t-value of 13.594 and a p-value of 
+2e-16 which is much smaller than the alpha, we reject the null hypothesis, that each estimated coefficient is equal to zero.
+* The RTEN has an estimate of 0.139 with a t-value of 2.63 and a p-value of 
+0.0129 which issmaller than the alpha, we reject the null hypothesis, that each estimated coefficient is equal to zero.
+* The r-squared is 0.982 and the adjusted r-squared being 0.981 which is a very high indication that the variable PREP can be well predicted by FAMI and RTEN.
+* The f-statistic is 1139 with df of 2 and 40. The p-value associated with it is 2.2e-16 which is less than the alpha so we reject that the null hypothesis that R-squared is equal to 0, and shows that the test is statistically significant. 
+
+ 
+
+
+# Chapter 9, Exercise 9
+
+_Repeat Exercise 8 using lmBF() to conduct one regression analysis that includes the interaction term and one that does not. (1 pt) Interpret the results. Make sure you report an odds ratio for the comparison of a model with linear effects versus a model with linear and interaction effects. Interpret the results in your own words. (1 pt)_
+
+```{r}
+lmOutBayes1 <- lmBF(PREP~FAMI+RTEN,data=df) #linear regression BF
+lmOutBayes2 <- lmBF(PREP~FAMI+RTEN + FAMI:RTEN,data=df)  #linear regresion BF
+lmOutBayes1
+lmOutBayes2
+```
+* The Bayes factor analsysis for the data, odds ratio of 2.3117e+32 to 1,
+This shows that the odds are overwhelmingly in favor of the alternative hypothesis, in the sense that the model containing FAMI and RTEN as predictors is hugely favored over a model means that only contains the y-intercept.
+* The bayes factor analysis for the model containing the interaction term, has an 
+odds ratio of 8.21e+32 to 1, which is heavily in favor of the alternative hypothesis.
+```{r}
+lmOutBayes2/lmOutBayes1 #ratio
+```
+* An odds ratio for the comparison of a model with linear effects versus a model with linear and interaction effects, has an odds ratio of 0.03 to 1, which is very low,
+not in favor of the alternative hypothesis, and should not be mentioned.    

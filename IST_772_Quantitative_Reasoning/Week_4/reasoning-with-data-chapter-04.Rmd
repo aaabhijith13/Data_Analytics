@@ -1,0 +1,47 @@
+---
+title: An R Markdown document converted from "Reasoning with Data - Chapter 4.ipynb"
+output: html_document
+---
+
+```{r}
+# Descriptive statistics and box plot for mtcars
+mean( mtcars$mpg[ mtcars$am == 0 ] ) # Automatic transmissions
+mean( mtcars$mpg[ mtcars$am == 1 ] ) # Manual transmissions
+
+sd( mtcars$mpg[ mtcars$am == 0 ] ) # Automatic transmissions
+sd( mtcars$mpg[ mtcars$am == 1 ] ) # Manual transmissions
+
+
+boxplot(mpg ~ am, data=mtcars, main=NULL) # Boxplot of mpg, grouped by am
+```
+
+```{r}
+mean( sample(mtcars$mpg[ mtcars$am == 0 ],size=19,replace=TRUE) )
+mean( sample(mtcars$mpg[ mtcars$am == 1 ],size=13,replace=TRUE) )
+```
+
+```{r}
+mean( sample(mtcars$mpg[ mtcars$am == 0 ],size=19,replace=TRUE) ) - mean( sample(mtcars$mpg[ mtcars$am == 1 ],size=13,replace=TRUE) )
+```
+
+```{r}
+meanDiffs <- replicate(100, mean(sample(mtcars$mpg[mtcars$am == 0],size=19,replace=TRUE)) - 
+                            mean(sample(mtcars$mpg[mtcars$am == 1],size=13,replace=TRUE)))
+```
+
+```{r}
+hist(meanDiffs, main=NULL)
+abline(v=quantile(meanDiffs,.025))
+abline(v=quantile(meanDiffs,.975))
+quantile(meanDiffs, c(0.025, 0.975))
+```
+
+```{r}
+t.test(mtcars$mpg[mtcars$am==0] ,mtcars$mpg[mtcars$am==1])
+```
+
+```{r}
+library(animation)
+conf.int(level=0.95) # Warning, does not animate: Just spits out 50 charts
+```
+

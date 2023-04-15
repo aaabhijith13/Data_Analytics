@@ -1,0 +1,55 @@
+---
+title: "IST 777 practice exam #4"
+author: "Abhijith Anil Vamadev"
+output: pdf_document
+---
+
+# 1.	Help
+
+_Run ?USJudgeRatings and examine the help file for that built-in data frame. Cut and paste the most relevant information from the help screen below._
+
+```{r}
+USJudgeRatings
+?UsJudgeRatings
+#Lawyers' ratings of state judges in the US Superior Court.
+```
+
+
+# 2.	New data frame
+
+_Copy the built-in data frame USJudgeRatings into a new data frame. Call your new data frame “newJudge”._
+
+```{r}
+newJudge <- USJudgeRatings
+```
+
+
+# 3.	Binary variable
+
+_Create a binary version of the RTEN variable in newJudge with the following code:_
+
+```{r }
+newJudge$retain <- newJudge$RTEN > median(newJudge$RTEN)
+```
+
+# 4.	Exploratory analysis
+
+_Carry out the necessary univariate and bivariate explorations of the variables retain, CONT, and INTG from your newJudge data frame._
+```{r}
+hist(newJudge$RTEN)
+hist(newJudge$CONT)
+hist(newJudge$INTG)
+```
+
+
+
+# 5.	Logistic regression
+
+_Run a logistic regression model using CONT and INTG to predict retain. Be sure to check the regression diagnostics._
+
+
+# 6.	Writeup
+
+_Provide a write up of your results, with an interpretation of the research question, “Can the number of contacts between a lawyer and a judge along with the lawyer’s rating of judicial integrity predict retention recommendations about the judge?”_
+
+

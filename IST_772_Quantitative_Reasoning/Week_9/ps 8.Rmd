@@ -1,0 +1,176 @@
+---
+title: "IST772 Problem Set 8"
+author: "Abhijith Anil Vamadev"
+output:
+  pdf_document: default
+---
+
+The homework for week 8 is based on exercises 2-8 on pages 181-182 but with changes as noted in this notebook (i.e., follow the problems as given in this document and not the textbook). 
+
+Attribution statement: (choose only one)
+1. I did this homework by myself, with help from the book and the professor
+
+# Chapter 8, Exercise 2
+
+_The carData package in R contains a small data set called Prestige that contains n = 102 observations of different occupations in Canada in 1971. Load the carData package and use “?Prestige” to display help about the data set.  _
+
+_As always, you should start by examining the data and identifying any problematic variables. (1 pt) You should also look at the relations and apply any needed transformations. (1 pt) But be conservative!_
+
+_Create and interpret a bivariate correlation matrix keeping in mind the idea that you will be trying to predict the prestige variable. You will have to select out non-numeric variables (i.e., factors) and should eliminate other variables if they are not meaningful. Which other variable might be the single best predictor? (1 pt)_
+```{r}
+library(carData)
+data <- carData::Prestige #loading the data
+str(data) #structure of the data
+table(is.na(data$education)) #checking null values
+table(is.na(data$income)) #checking null values
+table(is.na(data$women)) #checking null values
+table(is.na(data$prestige)) #checking null values
+table(is.na(data$census)) #checking null values
+table(is.na(data$type)) #checking null values
+hist(data$education)#hist of the data
+hist(data$income)#hist of the data
+hist(data$women)#hist of the data
+hist(data$prestige)#hist of the data
+hist(data$census)#hist of the data
+```
+* Looking at the data, only type has 4 values missing every other variable has no null values. 
+* Only income and women looks a bit skewed to the right, maybe giving it a log 
+transformation will make it less skewed.
+* Income is way more skewed than women, so we will do a transformation to income. 
+```{r}
+library(base)
+hist(log(data$income)) #histogram of the log of  income
+data$income <- log(data$income) #converting all values to log values
+cor(x = data$prestige, y = data[,1:5]) #correlation of the data
+
+new_data <- subset(data, select = - c(women, type)) #subsetting a new dataframe
+str(new_data) #structure of the new data frame
+cor(new_data) #correlation of the 2 by 2 matrix
+```
+* From the correlation of variables between prestige and other variables it 
+looks like education, income and census
+all correlate well with prestige. Women can be dropped because the variable
+dosen't correlate well with prestige. 
+* Education might be the best predictor. 
+
+# Chapter 8, Exercise 3
+
+_Run a multiple regression analysis on the Prestige data with lm(), using prestige as the dependent variable and education and women as the predictors. (1 pt) Check and interpret the diagnostics. (1 pt) Say whether or not the overall R‐squared was significant. If it was significant, report the value and say in your own words whether it seems like a strong result or not. (1 pt) Review the significance tests on the coefficients (B‐weights). For each one that was significant, report its value and say in your own words what it means and whether it seems like a strong result or not. (1 pt)_
+```{r}
+library(lm.beta)
+result <- lm(prestige~education + women, data = data) #linear regreesion
+summary(result) #summary of the results
+lm.beta(result) #b-weights
+```
+* The Median is around 1 and the residulas appear to be distributed without any skewness. 
+If the median was more closer to 0, it suggests there is no skewneess in the data.
+* The y-intercept is about -8.75 and both the ceofficents for education and women 
+are 5.427 and -0.093 respectively. 
+Each of the values including the intercept all have values below 0.05 showing 
+that they are all significatnt, and that we should reject the null hypothesis. 
+* The t-value shows the Student’s t-test of the null hypothesis that each estimated 
+coefficient is equal to
+zero.
+* THe r-squared is 0.7521 and the adjusted r-squared being 0.74 which is a 
+very high indication that the variable prestige can be well predicted by women 
+and education. 
+* The f-statistic is 150.2 with df of 2 and 99. THe p-value associated with 
+it is 2.2e-16  which is less than the alpha so we reject that the null hypothesis
+that R-squared is equal to 0.
+* Looking at the b weights, education has the highest with 5.427 indicating 
+it is the most impact predictor in predicting the variable prestige compared to women. 
+
+# Chapter 8, Exercise 4
+
+_Using the results of the analysis from Exercise 2, construct a prediction equation for prestige using all three of the coefficients from the analysis (the intercept along with the two B‐weights). (1 pt) If you observed an occupation with scores for education of 8 and women of 35, what would you predict the prestige of the occupation to be (you can use your equation or the predict function)? Show your calculation and the resulting value of prestige (1 pt)_
+```{r}
+pred <- data.frame(education = 8, women = 35) #convertnig it into a dataframe
+predict(result, pred) #using prediction function
+#Prediction equation : y = education*5.42 + women* -0.093 -8.75
+```
+* The prediction equation is y = education5.42 - women0.093 -8.75
+* We can calculate the prestige value by inputing in all the numbers or by using the predict function
+* We get a value of 31.411 Prestige. 
+
+# Chapter 8, Exercise 5
+
+_Run a multiple regression analysis on the Prestige data with lmBF(), using prestige as the dependent variable and education and women as the predictors. (1 pt) Interpret the resulting Bayes factor in terms of the odds in favor of the alternative hypothesis (be sure to note the hypotheses being compared). Do these results strengthen or weaken your conclusion to exercise 2? (1 pt)_
+```{r}
+library(BayesFactor)
+bf <- lmBF(prestige~education + women, data = data) #linear regresion model
+summary(bf) #summary of the model
+```
+* This shows that the odds are overwhelmingly in favor of the alternative hypothesis, 
+in the sense that the model containing education and women as predictors is hugely favored
+over a model means that only contains the y-intercept. 
+* Calculating overall mean-rsquared value we get 0.739 which indicates the model is a good predictor.
+* This strengthens the conclusion to exercise 2. 
+
+# Chapter 8, Exercise 6
+
+_Run lmBF() with the same model as for Exercise 4, but with the options posterior=TRUE and iterations=10000. (1 pt) Interpret the resulting information about the coefficients. (1 pt)_
+```{r}
+bfp <- lmBF(prestige~education + women, data = data, posterior = TRUE, iterations = 10000)
+#lmBF function
+summary(bfp) #summary of the results
+```
+* Calculating overall mean-rsquared value we get 0.739 which indicates the model 
+is a good predictor. 
+* Sig2 is a indication of model precision, the smaller the sig2 the better the 
+quality of prediction. 
+* From the mean of education adn women, it seems that education is a better 
+indicator of prestige than women.
+* All the HDIS for the variables education and women, are 4.73 and 5.994 and 
+-0.14 and -0.03 respectively
+neither of these HDIS include 0, indicating they are statistically significant 
+
+
+# Chapter 8, Exercise 7
+
+_Run install.packages() and library() for the “car” package. The car package is “companion to applied regression” rather than more data about automobiles. Read the help file for the vif() procedure and then look up more information online about how to interpret the results. Then write down in your own words a “rule of thumb” for interpreting vif. (1 pt)_
+```{r}
+library(regclass)#library to load VIF 
+?VIF()
+```
+* Variance inflation factor (VIF) is a measure of the amount of
+multicollinearity in a set of multiple regression variables. 
+* A high VIF indicates that the associated independent variable is 
+highly collinear with the other variables in the model.
+* Values of VIF that exceed 10 are often regarded as indicating multicollinearity. 
+
+# Chapter 8, Exercise 8
+
+_Run vif() on the results of the model from Exercise 3. (1 pt) Interpret the results. Then run a model that predicts prestige from all of the predictors in Prestige. Run vif() on those results and interpret what you find. (1 pt) Construct and report on a final model that addresses any problems you found. (1 pt)_
+```{r}
+library(regclass)
+VIF(result) #VIF results of exercise 3, first model
+print("**************************************")
+final_model <- lm(prestige~education+women+income+census, data = data)
+VIF(final_model)#VIF results of all the rpedicotrs 
+summary(final_model) #summary of the model lwith all predictors
+```
+* VIF is an in indication of multi-colinearity among variables. 
+* For the model from excercise 3, all the VIF scores for education and women are 1.003 and 1.003
+low, indicating low multicolinearity.
+* For the final model with all the variables, the VIF scores for education, 
+women, income and cesus,are as follows: 4.613, 1.84, 2.62 and 3.502 
+all the values are lower than 10 indicating low multicomlinearity. 
+```{r}
+final_model1 <- lm(prestige~education+income, data = data)#creating final model
+summary(final_model1) #summary of final model
+```
+* For the final model, we dropped women and census as they two variables 
+previously had p-values that were 0.106 for women and 0.558 
+which were above 0.05 indicating that the two variables might
+not be statistically signicant.
+* The p-value of both the intercept and the two variables education and income, were 
+2e-16 and 2.94e-12 which are very low p-values indicating that we can reject the null 
+hypothesis, that each estimated coefficient is equal to zero.
+* So we drop the two variables and run the final regression model. 
+* The r-squared value for the model is 0.82 showing that it is a very 
+good model that predicts prestige well. 
+* The f-statistic of 243.3 on df of 2 and 99 show that the p-value is
+2.2e-16 which is very low, showing that
+we can reject the null hypothesis that R-squared is equal to 0.
+* This final model is good as it captures all the necesscary variables and predicts prestige well.
+

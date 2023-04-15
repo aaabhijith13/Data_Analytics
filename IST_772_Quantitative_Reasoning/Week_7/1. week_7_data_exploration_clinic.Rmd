@@ -1,0 +1,119 @@
+---
+title: "Week 7 Data Exploration Clinic"
+author: "Kevin Crowston"
+---
+
+Instructions: Your instructor will supply an R dataset (with the file name cancer.RData) that you can read directly into R and that will appear in the working environment as a dataframe object entitled “cancer” This data frame, obtained from https://data.world/exercises/linear-regression-exercise-1, contains data about n=3047 counties in the United States. In addition to the country name, each row contains death rate due to cancer ("deathrate") along with 14 other demographic variables. The data dictionary can be found here: https://data.world/exercises/linear-regression-exercise-1/workspace/data-dictionary. The research question is to predict the death rate from (a subset of) the other variables. 
+
+This clinic involves exploring and cleaning up the data one variable at a time (univariate) and if there's time, exploring the variables two at a time (bivariate).
+
+# Phase 1 Instructions
+
+Read in the cancer dataset and examine it. 
+
+1.	Place the cancer.Rdata file in a convenient location on your computer. Read it in using the open dialog under the Environment tab in the upper right pane of R-Studio. The icon looks like a tiny yellow folder with a little green arrow. When you are successful, you will have a new data frame object called “cancer” in your working environment. Type View(cancer) at the command line and review the data.
+
+A first step is to check what data you have, e.g., with summary() and describe(). 
+
+a.	Examine the distribution of the data with histograms. You can easily create histograms of all of the columns by using the apply function (hint, wrap the call in invisible() to supress the output). Or, use one of my favourite plots, the violin plot:
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+cancer %>% 
+  pivot_longer(cols=-Geography, names_to="variable", values_to="value", values_drop_na = TRUE) %>% 
+  ggplot(aes(x=variable, y=value)) + geom_violin() + facet_wrap( ~ variable, scales="free")
+```
+
+In these plots, we're looking for signs of problems with the data, specifically outliers or skewed distributions. 
+
+b. Another way to find outliers is with the dlookr library. 
+
+```{r}
+install.packages("dlookr")  # note: requires version 3.5.2 or higher
+library(dlookr)
+diagnose_outlier(cancer)
+plot_outlier(cancer)
+```
+
+If you find outliers, you will need to decide how to handle them. The first question is if they really are outliers, that is, could they just be exceptional but accurate values? If they are errors, you could try to fix the error (e.g., go back to the original source). Or you could just drop those observations, though that would mean losing all of the other data for those observations. A third possibility (and what we'll do for this exercise) is to note the variable with the outliers as problematic and set it aside. 
+
+Document any outliers you found and what you did about them. 
+
+c. If you find highly skewed data, you will need to decide how to handle them. Regression does not assume that the predictor variables are normally distributed, but it does assume that they are linearly related to the outcome variable, which likely won't be true if one variable is highly skewed and others aren't. If you ran describe, the skew column will report on the skewness of the data. Or you can use the skewness() function from the e1071 library. Compare the skewness scores to the histogram so that you can see the shape that is associated with strong skewness.
+
+We can try different transformations to see if they will reduce the skewness. Here are some possible transformations:
+
+sqrt() – The square root of the value
+log() – The natural log of the value (NB. won't work if the value is 0; it's common to use log(x+1) in that case)
+asin() – Arc sine, the inverse of the sine function
+atan() – Arc tangent, the inverse of the tangent function
+1/X – The reciprocal of the value
+
+For instance, you might create a transformed version of popEst2015 as follows:
+
+```{r}
+cancer$sqrt_popEst2015 <- sqrt(cancer$popEst2015)
+```
+
+Pick no more than one skewed variable and look at possible transformations. Review the result with a histogram and with the skewness() function to see if there has been improvement. 
+
+Document the transformations you made and the reason. 
+
+d. A final check is for missing data. Missing values are a problem because most analyses will drop the entire observation if a value is missing in any variable. The summary command will have noted variables with NAs. The diagnose function in dlookr also gives information about missing data, as well as picking out the identifier columns.
+
+```{r}
+library(dlookr)
+diagnose(cancer)
+```
+
+You can see the pattern of NAs across variables with the md.pattern() function from the mice library: 
+
+```{r}
+#install.packages("mice")
+library(mice)
+md.pattern(cancer, plot=FALSE)
+```
+
+You can also get a sense of what's going on with a visualization. 
+
+```{r}
+#install.packages("visdat")
+library(visdat)
+vis_miss(cancer)
+```
+
+While there are ways to work around missing values (e.g., imputing them, that is, estimating them from the values that are present), for now I suggest just noting a variable with lots of missing values as problematic and setting it aside. 
+
+If you dropped variables in Phase 1 for any reason, create a new dataframe with just the variables of interest. 
+
+Share your code on https://codeshare.io/aJDyRX 
+
+
+# Phase 2 Instructions
+
+3. In this phase, we will do some bivariate exploration of the data. 
+
+a. We will start by plotting the variables against each other. There are a lot of functions to choose from, but two nice ones are pairs.panels from the psych library and ggpairs from GGally. Since there are a lot of variables, you will need to expand these plots to see what's going on (click the left button in the upper right of the results). Hint: You the first column is text data, which it doesn't make sense to plot. To get around this, remove the first column from the analysis with the square brackets notation or subset (you may already have done this above), for example:
+
+
+```{r}
+library(GGally)
+cancer %>% select(-c(Geography)) %>% ggbivariate("deathrate", progress=FALSE)
+```
+
+
+```{r}
+install.packages("psych")
+library(psych)
+pairs.panels(subset(cancer,select=-c(Geography)))
+```
+
+```{r}
+install.packages("GGally")
+library(GGally)
+ggpairs(subset(cancer,select=-c(Geography)), progress=FALSE)
+```
+
+In these plots, we're looking for bivariate outliers (points away from the main distribution of the data) and non-linear relationships. We deal with these as above, by investigating the outlier data points and by looking for transformations that make the relationship more linear. Note any problems you see and actions you could take. 
+

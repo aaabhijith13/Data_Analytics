@@ -1,0 +1,152 @@
+---
+title: An R Markdown document converted from "reasoning-with-data-chapter-9.ipynb"
+output: html_document
+---
+
+```{r}
+install.packages("HSAUR") # Note that to install a package in Kaggle notebooks, you will have to enable Internet in the settings pane
+library("HSAUR")
+data("weightgain", package = "HSAUR")
+dim(wg)
+```
+
+```{r}
+wg <- weightgain
+
+
+interaction.plot(x.factor=wg$source,trace.factor=wg$type,response=wg$weightgain)
+```
+
+```{r}
+aovOut = aov(weightgain ~ source + type + source:type, data=weightgain)
+aovOut2 = aov(weightgain ~ source * type, data=weightgain)
+```
+
+```{r}
+# Code for Sidebar 9.1
+testF <- rf(n=10000, df1=1, df2=36) # Generate random Fs for F(1,36)
+hist(testF) # Display a histogram
+abline(v=quantile(testF,c(0.95)),col="black") # Show threshold of significance, p<.05
+quantile(testF,c(0.95)) # Report the threshold to the console
+```
+
+```{r}
+# Back to chapter 9 code. . .
+library(BayesFactor)
+aovOut3 = anovaBF(weightgain ~ source*type, data=weightgain)
+aovOut3
+aovOut3[4]/aovOut3[3]      # What's the odds ratio of model 4 vs. model 3?
+```
+
+```{r}
+mcmcOut <- posterior(aovOut3[4],iterations=10000)  # Run mcmc iterations
+summary(mcmcOut) # Review detailed posterior distributions
+```
+
+```{r}
+boxplot(as.matrix(mcmcOut[,2:5]), main=NULL) # Figure 9.2
+```
+
+```{r}
+boxplot(as.matrix(mcmcOut[,6:7]), main=NULL) # Figure 9.3
+```
+
+```{r}
+install.packages("gplots") # Note that to install a package in Kaggle notebooks, you will have to enable Internet in the settings pane
+library("gplots")
+
+plotmeans(weightgain ~ interaction(source,type,sep =" "), data=weightgain,connect=list(c(1,2),c(3,4)))
+```
+
+```{r}
+# Note that to install a package in Kaggle notebooks, you will have to enable Internet in the settings pane
+install.packages("lattice")
+library(lattice)
+data(environmental)
+```
+
+```{r}
+plot(environmental$radiation,environmental$ozone)
+
+# This grey line shows what happens when we only consider
+# the data with wind speeds above the median wind speed
+hiWind <- subset(environmental, wind > median(environmental$wind))
+hiLmOut <- lm(ozone ~ radiation,data=hiWind)
+abline(hiLmOut,col="grey")
+
+# This dotted black line shows what happens when we only consider
+# the data with wind speeds at or below the median wind speed
+loWind <- subset(environmental, wind <= median(environmental$wind))
+loLmOut <- lm(ozone ~ radiation,data=loWind)
+abline(loLmOut,col="black",lty=3)
+```
+
+```{r}
+lmOut1 <- lm(ozone ~ radiation * wind, data=environmental)
+summary(lmOut1)
+```
+
+```{r}
+plot(environmental$radiation,residuals(lmOut1)) 
+abline(h=0)
+```
+
+```{r}
+plot(environmental$ozone,residuals(lmOut1)) 
+abline(h=0)
+```
+
+```{r}
+# Sidebar 9.3 code
+plot(environmental$radiation,environmental$ozone)
+env <- environmental
+env$radSqr <- env$radiation^2
+lmOutQuad <- lm(ozone ~ radiation + wind + radSqr + radiation:wind, data=env)
+summary(lmOutQuad)
+pairs(environmental,panel=panel.smooth)
+```
+
+```{r}
+# Rerun the analysis with centered variables
+stdenv <- data.frame(scale(environmental,center=TRUE,scale=FALSE))
+lmOut2 <- lm(ozone ~ radiation * wind,data=stdenv)
+summary(lmOut2)
+```
+
+```{r}
+lmOutSimple <- lm(ozone ~ radiation + wind,data=stdenv)
+lmOutInteract <- lm(ozone ~ radiation + wind + radiation:wind,data=stdenv)
+install.packages("lmSupport") # Note that to install a package in Kaggle notebooks, you will have to enable Internet in the settings pane
+library(lmSupport)
+modelCompare(lmOutSimple, lmOutInteract)
+```
+
+```{r}
+lmOutBayes1 <- lmBF(ozone ~ radiation + wind,data=stdenv)
+lmOutBayes2 <- lmBF(ozone ~ radiation + wind + radiation:wind,data=stdenv)
+lmOutBayes2/lmOutBayes1
+```
+
+```{r}
+mcmcOut <- lmBF(ozone ~ radiation + wind + radiation:wind,data=stdenv, posterior=TRUE,iterations=10000)
+summary(mcmcOut)
+```
+
+```{r}
+rsqList <- 1 - (mcmcOut[,"sig2"] / var(stdenv$ozone))
+mean(rsqList) # Overall mean R-squared
+quantile(rsqList,c(0.025))
+quantile(rsqList,c(0.975))
+```
+
+```{r}
+loWind$wind <- mean(loWind$wind) - sd(loWind$wind)
+hiWind$wind <- mean(hiWind$wind) + sd(hiWind$wind)
+loWindOzone <- modelPredictions(lmOut1, Data=loWind, Type = 'response')
+hiWindOzone <- modelPredictions(lmOut1, Data=hiWind, Type = 'response')
+
+
+plot(loWind$radiation,loWindOzone$Predicted,xlim=c(0,350),ylim=c(10,90))
+points(hiWind$radiation,hiWindOzone$Predicted,pch=3)
+```
+

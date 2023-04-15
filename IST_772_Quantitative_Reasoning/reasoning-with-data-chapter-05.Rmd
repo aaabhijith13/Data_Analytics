@@ -1,0 +1,42 @@
+---
+title: An R Markdown document converted from "Reasoning with Data - Chapter 5.ipynb"
+output: html_document
+---
+
+```{r}
+install.packages("BEST")
+library(BEST)
+```
+
+```{r}
+carsBest <- BESTmcmc(mtcars$mpg[mtcars$am==0] ,mtcars$mpg[mtcars$am==1]) # Runs OK, JAGS must be installed on VM
+```
+
+```{r}
+plot(carsBest, main=NULL)
+```
+
+```{r}
+t.test(mtcars$mpg[mtcars$am==0] ,mtcars$mpg[mtcars$am==1])
+```
+
+```{r}
+install.packages("effsize")
+library(effsize)
+cohen.d(mtcars$mpg[mtcars$am==0] ,mtcars$mpg[mtcars$am==1])
+```
+
+```{r}
+set.seed(54321) # Control randomization
+carsTdist <- rt(n=10000,df=18.332) # 10,000 random t values
+hist(carsTdist) # Show in a histogram
+lowTvalues <- carsTdist[carsTdist <= -3.7671] # Here is the lower tail
+hiTvalues <- carsTdist[carsTdist >= 3.7671] # Here is the upper tail
+length(lowTvalues) + length(hiTvalues) # The number of observations in the tails
+```
+
+```{r}
+# This is the t-command used at the end of the exercises
+t.test(rnorm(100000,mean=17.1,sd=3.8),rnorm(100000,mean=17.2,sd=3.8))
+```
+

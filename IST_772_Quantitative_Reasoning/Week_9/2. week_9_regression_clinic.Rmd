@@ -1,0 +1,73 @@
+---
+title: "Week 9 Regression Clinic"
+author: "Kevin Crowston"
+---
+
+Instructions: Your instructor will supply an R dataset (with the file name cancer.RData) that you can read directly into R and that will appear in the working environment as a dataframe object entitled “cancer” This data frame, obtained from https://data.world/exercises/linear-regression-exercise-1, contains data about n=3047 counties in the United States. In addition to the country name, each row contains death rate due to cancer ("deathrate") along with 14 other demographic variables. The data dictionary can be found here: https://data.world/exercises/linear-regression-exercise-1/workspace/data-dictionary. The research question is to predict the death rate from (a subset of) the other variables. 
+
+In a previous class you explored and cleaned up the data one variable at a time (univariate) and two at a time (bivariate). For this clinic, you should use the variables you selected or transformed then. 
+
+In this clinic you will build a model and check the diagnostics, e.g., for a poorly-specified model, multi-colinearity and heteroskedasticity. You will then modify the model to correct the problems to arrive at a final model.
+
+Start by reading in the cancer dataset you hopefully saved from the previous class, or read in and redo the variable selection and transformations.  
+
+1. Complete a regression analysis of the selected and transformed cancer data. The dependent variable is deathrate.  
+```{r}
+model <- lm(deathrate~., mycancer)
+summary(model)
+```
+
+
+a. Start by creating an lm() model that includes all of the non-problematic and transformed variables you created in the previous section (i.e., with the model deathrate ~ .). 
+
+b. Plot the model results and check the residuals. Residuals should be normally distributed, and there should be no signs of heteroskedasticity or outliers affecting the results. See https://statisticsbyjim.com/regression/heteroscedasticity-regression/ and https://stats.stackexchange.com/questions/58141/interpreting-plot-lm/65864#65864 for some discussion.
+```{r}
+plot(model, which = 1:6)
+hist(model$residuals) # to plot the residuals
+#hetroscadacity cone shape then it is hetdroscadcity <<<<<<
+#normally distributed residuals - it fits the model
+#if they are non-normally distributed they should be in linear regression
+#the points in the second graph, show how far distrubted the values are....the values like 282 show why the normal graph has long tails. 
+```
+
+
+c. Next, look at the VIF for signs of multi-colinearity, using the vif function from the car library. If there is high multicolinearity, select a subset of the variables to use as predictors, noting your rationale for the decision. Repeat as necessary. Be sure to check the residuals of your final model.
+```{r}
+library(regclass)
+VIF(model)
+new_model <- lm(deathrate~. -log_popEst2015, mycancer)
+print("___________________________________________________________________________________________________________")
+VIF(new_model)
+```
+
+
+d. Once you have a model that seems okay, examine the regression results. To see which predictors have the biggest impact on the result, you should compare standardized coefficients, i.e., those based on standardized variables: each coefficent then gives the impact on the outcome variable of a one standarded deviation change in the predictor. The lm.beta function in the lm.beta library computes standardized coefficients. 
+```{r}
+library(lm.beta)
+summary(new_model)
+lm.beta(new_model)
+#higher beta means more impactful. incidence rate. 
+#for increase in incidece rate by 0.1992 death rate increases by a rate of 1. 
+```
+
+
+Write a brief statement documenting the R-squared value, whether it was significant, the B-weights, whether they were significant, and anything else of interest in the output.
+
+2. We'll next look at a Bayesian analysis. 
+
+a. Create an lmBF() model with at least 10,000 posterior estimates. As before, predict the outcome variable deathrate using your selection of variables. Write a brief statement that reviews the HDIs for all relevant parameters.
+```{r}
+library(BayesFactor)
+bf <- lmBF(deathrate~. -log_popEst2015, mycancer, posterior = TRUE, iterations = 10000)
+summary(bf)
+```
+
+
+b. Using the posterior distribution of sig2, calculate and plot a posterior distribution of R-squared values for the lmBF() model. Write a brief statement describing what you see in the resulting histogram.
+```{r}
+plot(bf)
+```
+
+3. Integrate all of the information from your analyses to create a unified interpretation of the results. Answer the research question: how well do the various demographic factors predict the cancer death rate in a county?
+
+Share your code on https://codeshare.io/aJDyRX 
