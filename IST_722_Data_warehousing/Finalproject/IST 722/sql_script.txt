@@ -1,0 +1,558 @@
+/****** Object:  Database ist722_hhkhan_cb2_dw    Script Date: 1/16/2023 7:47:37 PM ******/
+/*
+Kimball Group, The Microsoft Data Warehouse Toolkit
+Generate a database from the datamodel worksheet, version: 4
+
+You can use this Excel workbook as a data modeling tool during the logical design phase of your project.
+As discussed in the book, it is in some ways preferable to a real data modeling tool during the inital design.
+We expect you to move away from this spreadsheet and into a real modeling tool during the physical design phase.
+The authors provide this macro so that the spreadsheet isn't a dead-end. You can 'import' into your
+data modeling tool by generating a database using this script, then reverse-engineering that database into
+your tool.
+
+Uncomment the next lines if you want to drop and create the database
+*/
+/*
+DROP DATABASE ist722_hhkhan_cb2_dw
+GO
+CREATE DATABASE ist722_hhkhan_cb2_dw
+GO
+ALTER DATABASE ist722_hhkhan_cb2_dw
+SET RECOVERY SIMPLE
+GO
+*/
+USE ist722_hhkhan_cb2_dw
+;
+IF EXISTS (SELECT Name from sys.extended_properties where Name = 'Description')
+    EXEC sys.sp_dropextendedproperty @name = 'Description'
+EXEC sys.sp_addextendedproperty @name = 'Description', @value = 'Default description - you should change this.'
+;
+
+
+
+
+
+-- Create a schema to hold user views (set schema name on home page of workbook).
+-- It would be good to do this only if the schema doesn't exist already.
+GO
+CREATE SCHEMA fudgemflix
+GO
+
+
+
+
+
+
+/* Drop table fudgemflix.DimFfAccounts */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimFfAccounts') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimFfAccounts 
+;
+
+/* Create table fudgemflix.DimFfAccounts */
+CREATE TABLE fudgemflix.DimFfAccounts (
+   [AccountKey]  int IDENTITY  NOT NULL
+,  [AccountID]  int   NOT NULL
+,  [Email]  varchar(200)   NOT NULL
+,  [FirstName]  varchar(50)   NOT NULL
+,  [LastName]  varchar(50)   NOT NULL
+,  [FullName]  varchar(100)   NOT NULL
+,  [AccountAliasName]  varchar(100)   NOT NULL
+,  [PlanName]  varchar(50)   NOT NULL
+,  [AccountZipCode]  char(5)   NOT NULL
+,  [AccountCity]  varchar(50)  DEFAULT 'N/A' NOT NULL
+,  [AccountState]  varchar(25)  DEFAULT 'N/A' NOT NULL
+,  [AccountOpenedDateKey]  int   NOT NULL
+,  [RowIsCurrent]  bit   DEFAULT 1 NOT NULL
+,  [RowStartDate]  datetime  DEFAULT '12/31/1899' NOT NULL
+,  [RowEndDate]  datetime  DEFAULT '12/31/9999' NOT NULL
+,  [RowChangeReason]  nvarchar(200)   NULL
+, CONSTRAINT [PK_fudgemflix.DimFfAccounts] PRIMARY KEY CLUSTERED 
+( [AccountKey] )
+) ON [PRIMARY]
+;
+
+
+SET IDENTITY_INSERT fudgemflix.DimFfAccounts ON
+;
+INSERT INTO fudgemflix.DimFfAccounts (AccountKey, AccountID, Email, FirstName, LastName, FullName, AccountAliasName, PlanName, AccountZipCode, AccountCity, AccountState, AccountOpenedDateKey, RowIsCurrent, RowStartDate, RowEndDate, RowChangeReason)
+VALUES (-1, -1, 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'None', -1, 1, '12/31/1899', '12/31/9999', 'N/A')
+;
+SET IDENTITY_INSERT fudgemflix.DimFfAccounts OFF
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimFfAccounts]'))
+DROP VIEW [fudgemflix].[DimFfAccounts]
+GO
+CREATE VIEW [fudgemflix].[DimFfAccounts] AS 
+SELECT [AccountKey] AS [AccountKey]
+, [AccountID] AS [AccountID]
+, [Email] AS [Email]
+, [FirstName] AS [FirstName]
+, [LastName] AS [LastName]
+, [FullName] AS [FullName]
+, [AccountAliasName] AS [AccountAliasName]
+, [PlanName] AS [PlanName]
+, [AccountZipCode] AS [AccountZipCode]
+, [AccountCity] AS [AccountCity]
+, [AccountState] AS [AccountState]
+, [AccountOpenedDateKey] AS [AccountOpenedDateKey]
+, [RowIsCurrent] AS [Row Is Current]
+, [RowStartDate] AS [Row Start Date]
+, [RowEndDate] AS [Row End Date]
+, [RowChangeReason] AS [Row Change Reason]
+FROM fudgemflix.DimFfAccounts
+GO
+
+
+
+/* Drop table fudgemflix.DimFfTitles */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimFfTitles') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimFfTitles 
+;
+
+/* Create table fudgemflix.DimFfTitles */
+CREATE TABLE fudgemflix.DimFfTitles (
+   [TitleKey]  int IDENTITY  NOT NULL
+,  [TitleID]  varchar(20)   NOT NULL
+,  [TitleName]  varchar(200)   NOT NULL
+,  [TitleType]  varchar(20)   NOT NULL
+,  [Synopsis]  varchar(max)   NOT NULL
+,  [AverageRatingByCustomer]  decimal(3,2)   NOT NULL
+,  [ReleaseYear]  int   NOT NULL
+,  [Runtime]  int   NOT NULL
+,  [MPAARating]  varchar(5)   NOT NULL
+,  [IsBlurayAvailable]  nchar(1)   NOT NULL
+,  [IsDvdAvailable]  nchar(1)   NOT NULL
+,  [IsInstantAvailable]  nchar(1)   NOT NULL
+,  [LastUpdateDateKey]  int   NOT NULL
+,  [TitleGenreName]  varchar(200)   NOT NULL
+,  [RowIsCurrent]  bit   DEFAULT 1 NOT NULL
+,  [RowStartDate]  datetime  DEFAULT '12/31/1899' NOT NULL
+,  [RowEndDate]  datetime  DEFAULT '12/31/9999' NOT NULL
+,  [RowChangeReason]  nvarchar(200)   NULL
+, CONSTRAINT [PK_fudgemflix.DimFfTitles] PRIMARY KEY CLUSTERED 
+( [TitleKey] )
+) ON [PRIMARY]
+;
+
+SET IDENTITY_INSERT fudgemflix.DimFfTitles ON
+;
+INSERT INTO fudgemflix.DimFfTitles (TitleKey, TitleID, TitleName, TitleType, Synopsis, AverageRatingByCustomer, ReleaseYear, Runtime, MPAARating, IsBlurayAvailable, IsDvdAvailable, IsInstantAvailable, LastUpdateDateKey, TitleGenreName, RowIsCurrent, RowStartDate, RowEndDate, RowChangeReason)
+VALUES (-1, 'Unk', 'None', 'None', 'None', 0, 0, 0, 'None', 'N', 'N', 'N', -1, 'None', 1, '12/31/1899', '12/31/9999', 'N/A')
+;
+SET IDENTITY_INSERT fudgemflix.DimFfTitles OFF
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimFfTitles]'))
+DROP VIEW [fudgemflix].[DimFfTitles]
+GO
+CREATE VIEW [fudgemflix].[DimFfTitles] AS 
+SELECT [TitleKey] AS [TitleKey]
+, [TitleID] AS [TitleID]
+, [TitleName] AS [TitleName]
+, [TitleType] AS [TitleType]
+, [Synopsis] AS [Synopsis]
+, [AverageRatingByCustomer] AS [AverageRatingByCustomer]
+, [ReleaseYear] AS [ReleaseYear]
+, [Runtime] AS [Runtime]
+, [MPAARating] AS [MPAARating]
+, [IsBlurayAvailable] AS [IsBlurayAvailable]
+, [IsDvdAvailable] AS [IsDvdAvailable]
+, [IsInstantAvailable] AS [IsInstantAvailable]
+, [LastUpdateDateKey] AS [LastUpdateDateKey]
+, [TitleGenreName] AS [TitleGenreName]
+, [RowIsCurrent] AS [Row Is Current]
+, [RowStartDate] AS [Row Start Date]
+, [RowEndDate] AS [Row End Date]
+, [RowChangeReason] AS [Row Change Reason]
+FROM fudgemflix.DimFfTitles
+GO
+
+
+
+
+
+/* Drop table fudgemflix.DimFmCustomers */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimFmCustomers') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimFmCustomers 
+;
+
+/* Create table fudgemflix.DimFmCustomers */
+CREATE TABLE fudgemflix.DimFmCustomers (
+   [CustomerKey]  int IDENTITY  NOT NULL
+,  [CustomerID]  int   NOT NULL
+,  [FirstName]  varchar(50)   NOT NULL
+,  [LastName]  varchar(50)   NOT NULL
+,  [FullName]  varchar(50)   NOT NULL
+,  [CustomerAliasName]  varchar(100)   NOT NULL
+,  [Email]  varchar(100)   NOT NULL
+,  [Phone]  varchar(30)   NOT NULL
+,  [CustomerCity]  varchar(50)   NOT NULL
+,  [CustomerState]  char(2)   NOT NULL
+,  [CustomerZipCode]  varchar(20)   NOT NULL
+,  [RowIsCurrent]  bit   DEFAULT 1 NOT NULL
+,  [RowStartDate]  datetime  DEFAULT '12/31/1899' NOT NULL
+,  [RowEndDate]  datetime  DEFAULT '12/31/9999' NOT NULL
+,  [RowChangeReason]  nvarchar(200)   NULL
+, CONSTRAINT [PK_fudgemflix.DimFmCustomers] PRIMARY KEY CLUSTERED 
+( [CustomerKey] )
+) ON [PRIMARY]
+;
+
+
+
+SET IDENTITY_INSERT fudgemflix.DimFmCustomers ON
+;
+INSERT INTO fudgemflix.DimFmCustomers (CustomerKey, CustomerID, FirstName, LastName, FullName, CustomerAliasName, Email, Phone, CustomerCity, CustomerState, CustomerZipCode, RowIsCurrent, RowStartDate, RowEndDate, RowChangeReason)
+VALUES (-1, -1, 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'NA', 'None', 1, '12/31/1899', '12/31/9999', 'N/A')
+;
+SET IDENTITY_INSERT fudgemflix.DimFmCustomers OFF
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimFmCustomers]'))
+DROP VIEW [fudgemflix].[DimFmCustomers]
+GO
+CREATE VIEW [fudgemflix].[DimFmCustomers] AS 
+SELECT [CustomerKey] AS [CustomerKey]
+, [CustomerID] AS [CustomerID]
+, [FirstName] AS [FirstName]
+, [LastName] AS [LastName]
+, [FullName] AS [FullName]
+, [CustomerAliasName] AS [CustomerAliasName]
+, [Email] AS [Email]
+, [Phone] AS [Phone]
+, [CustomerCity] AS [CustomerCity]
+, [CustomerState] AS [CustomerState]
+, [CustomerZipCode] AS [CustomerZipCode]
+, [RowIsCurrent] AS [Row Is Current]
+, [RowStartDate] AS [Row Start Date]
+, [RowEndDate] AS [Row End Date]
+, [RowChangeReason] AS [Row Change Reason]
+FROM fudgemflix.DimFmCustomers
+GO
+
+
+
+/* Drop table fudgemflix.DimFmOrders */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimFmOrders') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimFmOrders 
+;
+
+/* Create table fudgemflix.DimFmOrders */
+CREATE TABLE fudgemflix.DimFmOrders (
+   [OrderKey]  int IDENTITY  NOT NULL
+,  [OrderID]  int   NOT NULL
+,  [CustomerID]  int   NOT NULL
+,  [CustomerFullName]  varchar(50)   NOT NULL
+,  [CustomerAliasName]  varchar(100)   NOT NULL
+,  [OrderDateKey]  int   NOT NULL
+,  [ShippedDateKey]  int   NOT NULL
+,  [ShippingCompanyName]  varchar(20)   NOT NULL
+,  [RowIsCurrent]  bit   DEFAULT 1 NOT NULL
+,  [RowStartDate]  datetime  DEFAULT '12/31/1899' NOT NULL
+,  [RowEndDate]  datetime  DEFAULT '12/31/9999' NOT NULL
+,  [RowChangeReason]  nvarchar(200)   NULL
+, CONSTRAINT [PK_fudgemflix.DimFmOrders] PRIMARY KEY CLUSTERED 
+( [OrderKey] )
+) ON [PRIMARY]
+;
+
+SET IDENTITY_INSERT fudgemflix.DimFmOrders ON
+;
+INSERT INTO fudgemflix.DimFmOrders (OrderKey, OrderID, CustomerID, CustomerFullName, CustomerAliasName, OrderDateKey, ShippedDateKey, ShippingCompanyName, RowIsCurrent, RowStartDate, RowEndDate, RowChangeReason)
+VALUES (-1, -1, 0, 'None', 'None', -1, -1, 'None', 1, '12/31/1899', '12/31/9999', 'N/A')
+;
+SET IDENTITY_INSERT fudgemflix.DimFmOrders OFF
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimFmOrders]'))
+DROP VIEW [fudgemflix].[DimFmOrders]
+GO
+CREATE VIEW [fudgemflix].[DimFmOrders] AS 
+SELECT [OrderKey] AS [OrderKey]
+, [OrderID] AS [OrderID]
+, [CustomerID] AS [CustomerID]
+, [CustomerFullName] AS [CustomerFullName]
+, [CustomerAliasName] AS [CustomerAliasName]
+, [OrderDateKey] AS [OrderDateKey]
+, [ShippedDateKey] AS [ShippedDateKey]
+, [ShippingCompanyName] AS [ShippingCompanyName]
+, [RowIsCurrent] AS [Row Is Current]
+, [RowStartDate] AS [Row Start Date]
+, [RowEndDate] AS [Row End Date]
+, [RowChangeReason] AS [Row Change Reason]
+FROM fudgemflix.DimFmOrders
+GO
+
+
+/* Drop table fudgemflix.DimFmProducts */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimFmProducts') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimFmProducts 
+;
+
+/* Create table fudgemflix.DimFmProducts */
+CREATE TABLE fudgemflix.DimFmProducts (
+   [ProductKey]  int IDENTITY  NOT NULL
+,  [ProductID]  int   NOT NULL
+,  [ProductDepartment]  varchar(20)   NOT NULL
+,  [ProductName]  varchar(50)   NOT NULL
+,  [RetailPrice]  decimal(25,4)   NOT NULL
+,  [WholesalePrice]  decimal(25,4)   NOT NULL
+,  [IsProductActive]  nchar(1)   NOT NULL
+,  [ProductLiveDateKey]  int   NOT NULL
+,  [VendorName]  varchar(50)   NOT NULL
+,  [VendorPhone]  varchar(20)   NOT NULL
+,  [RowIsCurrent]  bit   DEFAULT 1 NOT NULL
+,  [RowStartDate]  datetime  DEFAULT '12/31/1899' NOT NULL
+,  [RowEndDate]  datetime  DEFAULT '12/31/9999' NOT NULL
+,  [RowChangeReason]  nvarchar(200)   NULL
+, CONSTRAINT [PK_fudgemflix.DimFmProducts] PRIMARY KEY CLUSTERED 
+( [ProductKey] )
+) ON [PRIMARY]
+;
+
+SET IDENTITY_INSERT fudgemflix.DimFmProducts ON
+;
+INSERT INTO fudgemflix.DimFmProducts (ProductKey, ProductID, ProductDepartment, ProductName, RetailPrice, WholesalePrice, IsProductActive, ProductLiveDateKey, VendorName, VendorPhone, RowIsCurrent, RowStartDate, RowEndDate, RowChangeReason)
+VALUES (-1, -1, 'None', 'None', 0, 0, 'N', -1, 'None', 'None', 1, '12/31/1899', '12/31/9999', 'N/A')
+;
+SET IDENTITY_INSERT fudgemflix.DimFmProducts OFF
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimFmProducts]'))
+DROP VIEW [fudgemflix].[DimFmProducts]
+GO
+CREATE VIEW [fudgemflix].[DimFmProducts] AS 
+SELECT [ProductKey] AS [ProductKey]
+, [ProductID] AS [ProductID]
+, [ProductDepartment] AS [ProductDepartment]
+, [ProductName] AS [ProductName]
+, [RetailPrice] AS [RetailPrice]
+, [WholesalePrice] AS [WholesalePrice]
+, [IsProductActive] AS [IsProductActive]
+, [ProductLiveDateKey] AS [ProductLiveDateKey]
+, [VendorName] AS [VendorName]
+, [VendorPhone] AS [VendorPhone]
+, [RowIsCurrent] AS [Row Is Current]
+, [RowStartDate] AS [Row Start Date]
+, [RowEndDate] AS [Row End Date]
+, [RowChangeReason] AS [Row Change Reason]
+FROM fudgemflix.DimFmProducts
+GO
+
+
+
+
+/* Drop table fudgemflix.DimDate */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.DimDate') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.DimDate 
+;
+
+/* Create table fudgemflix.DimDate */
+CREATE TABLE fudgemflix.DimDate (
+   [DateKey]  int   NOT NULL
+,  [Date]  datetime   NULL
+,  [FullDateUSA]  nchar(11)   NOT NULL
+,  [DayOfWeek]  tinyint   NOT NULL
+,  [DayName]  nchar(10)   NOT NULL
+,  [DayOfMonth]  tinyint   NOT NULL
+,  [DayOfYear]  int   NOT NULL
+,  [WeekOfYear]  tinyint   NOT NULL
+,  [MonthName]  nchar(10)   NOT NULL
+,  [MonthOfYear]  tinyint   NOT NULL
+,  [Quarter]  tinyint   NOT NULL
+,  [QuarterName]  nchar(10)   NOT NULL
+,  [Year]  int   NOT NULL
+,  [IsAWeekday]  nchar(1)  DEFAULT 'N' NOT NULL
+, CONSTRAINT [PK_fudgemflix.DimDate] PRIMARY KEY CLUSTERED 
+( [DateKey] )
+) ON [PRIMARY]
+;
+
+INSERT INTO fudgemflix.DimDate (DateKey, Date, FullDateUSA, DayOfWeek, DayName, DayOfMonth, DayOfYear, WeekOfYear, MonthName, MonthOfYear, Quarter, QuarterName, Year, IsAWeekday)
+VALUES (-1, '', 'Unk date', 0, 'Unk date', 0, 0, 0, 'Unk month', 0, 0, 'Unk qtr', 0, 'N')
+;
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[DimDate]'))
+DROP VIEW [fudgemflix].[DimDate]
+GO
+CREATE VIEW [fudgemflix].[DimDate] AS 
+SELECT [DateKey] AS [DateKey]
+, [Date] AS [Date]
+, [FullDateUSA] AS [FullDateUSA]
+, [DayOfWeek] AS [DayOfWeek]
+, [DayName] AS [DayName]
+, [DayOfMonth] AS [DayOfMonth]
+, [DayOfYear] AS [DayOfYear]
+, [WeekOfYear] AS [WeekOfYear]
+, [MonthName] AS [MonthName]
+, [MonthOfYear] AS [MonthOfYear]
+, [Quarter] AS [Quarter]
+, [QuarterName] AS [QuarterName]
+, [Year] AS [Year]
+, [IsAWeekday] AS [IsAWeekday]
+FROM fudgemflix.DimDate
+GO
+
+
+
+
+/* Drop table fudgemflix.FactCustomerProductReview */
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'fudgemflix.FactCustomerProductReview') AND OBJECTPROPERTY(id, N'IsUserTable') = 1)
+DROP TABLE fudgemflix.FactCustomerProductReview 
+;
+
+/* Create table fudgemflix.FactCustomerProductReview */
+CREATE TABLE fudgemflix.FactCustomerProductReview (
+   [ProductKey]  int   NOT NULL
+,  [CustomerKey]  int   NOT NULL
+,  [OrderID]  int   NOT NULL
+,  [OrderDateKey]  int   NOT NULL
+,  [ShippedDateKey]  int   NULL
+,  [OrderQuantity]  int   NOT NULL
+,  [ProductRetailPrice]  decimal(25,2)   NOT NULL
+,  [ProductWholesalePrice]  decimal(25,2)   NOT NULL
+,  [ProductProfitMargin]  decimal(25,2)   NOT NULL
+,  [ProductLiveDateKey]  int   NOT NULL
+,  [ProductReviewAvgScore]  decimal(3,2)   NOT NULL
+,  [ProductReviewCount]  int   NOT NULL
+, CONSTRAINT [PK_fudgemflix.FactCustomerProductReview] PRIMARY KEY NONCLUSTERED 
+( [ProductKey], [OrderID] )
+) ON [PRIMARY]
+;
+
+
+-- User-oriented view definition
+GO
+IF EXISTS (select * from sys.views where object_id=OBJECT_ID(N'[fudgemflix].[FactCustomerProductReview]'))
+DROP VIEW [fudgemflix].[FactCustomerProductReview]
+GO
+CREATE VIEW [fudgemflix].[FactCustomerProductReview] AS 
+SELECT [ProductKey] AS [ProductKey]
+, [CustomerKey] AS [CustomerKey]
+, [OrderID] AS [OrderID]
+, [OrderDateKey] AS [OrderDateKey]
+, [ShippedDateKey] AS [ShippedDateKey]
+, [OrderQuantity] AS [OrderQuantity]
+, [ProductRetailPrice] AS [ProductRetailPrice]
+, [ProductWholesalePrice] AS [ProductWholesalePrice]
+, [ProductProfitMargin] AS [ProductProfitMargin]
+, [ProductLiveDateKey] AS [ProductLiveDateKey]
+, [ProductReviewAvgScore] AS [ProductReviewAvgScore]
+, [ProductReviewCount] AS [ProductReviewCount]
+FROM fudgemflix.FactCustomerProductReview
+GO
+
+
+ALTER TABLE fudgemflix.DimFfAccounts ADD CONSTRAINT
+   FK_fudgemflix_DimFfAccounts_AccountOpenedDateKey FOREIGN KEY
+   (
+   AccountOpenedDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.DimFfTitles ADD CONSTRAINT
+   FK_fudgemflix_DimFfTitles_LastUpdateDateKey FOREIGN KEY
+   (
+   LastUpdateDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.DimFmOrders ADD CONSTRAINT
+   FK_fudgemflix_DimFmOrders_OrderDateKey FOREIGN KEY
+   (
+   OrderDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.DimFmOrders ADD CONSTRAINT
+   FK_fudgemflix_DimFmOrders_ShippedDateKey FOREIGN KEY
+   (
+   ShippedDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.DimFmProducts ADD CONSTRAINT
+   FK_fudgemflix_DimFmProducts_ProductLiveDateKey FOREIGN KEY
+   (
+   ProductLiveDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.FactCustomerProductReview ADD CONSTRAINT
+   FK_fudgemflix_FactCustomerProductReview_ProductKey FOREIGN KEY
+   (
+   ProductKey
+   ) REFERENCES DimFmProducts
+   ( ProductKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.FactCustomerProductReview ADD CONSTRAINT
+   FK_fudgemflix_FactCustomerProductReview_CustomerKey FOREIGN KEY
+   (
+   CustomerKey
+   ) REFERENCES DimFmCustomers
+   ( CustomerKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.FactCustomerProductReview ADD CONSTRAINT
+   FK_fudgemflix_FactCustomerProductReview_OrderDateKey FOREIGN KEY
+   (
+   OrderDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.FactCustomerProductReview ADD CONSTRAINT
+   FK_fudgemflix_FactCustomerProductReview_ShippedDateKey FOREIGN KEY
+   (
+   ShippedDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
+ALTER TABLE fudgemflix.FactCustomerProductReview ADD CONSTRAINT
+   FK_fudgemflix_FactCustomerProductReview_ProductLiveDateKey FOREIGN KEY
+   (
+   ProductLiveDateKey
+   ) REFERENCES DimDate
+   ( DateKey )
+     ON UPDATE  NO ACTION
+     ON DELETE  NO ACTION
+;
+ 
